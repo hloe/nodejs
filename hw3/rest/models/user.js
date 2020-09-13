@@ -1,10 +1,12 @@
 import Sequelize from 'sequelize';
-const sequelize = new Sequelize('postgres://xfppzfva:Jlbv-sqXue75vp_F1SkS3O2AcN_HxAeP@otto.db.elephantsql.com:5432/xfppzfva');
+import { configUrl } from './../config.js';
+
+const sequelize = new Sequelize(configUrl);
 
 const UserModel = sequelize.define('users', {
     id: {
         type: Sequelize.UUID,
-        primaryKey: true,
+        primaryKey: true
     },
     login: {
         type: Sequelize.STRING(30),
