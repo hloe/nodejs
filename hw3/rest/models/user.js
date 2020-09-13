@@ -3,9 +3,8 @@ const sequelize = new Sequelize('postgres://xfppzfva:Jlbv-sqXue75vp_F1SkS3O2AcN_
 
 const UserModel = sequelize.define('users', {
     id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         primaryKey: true,
-        autoIncrement: true
     },
     login: {
         type: Sequelize.STRING(30),

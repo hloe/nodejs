@@ -5,14 +5,14 @@ import UserService from './../services/user.js';
 const router = express.Router();
 
 // GET all users
-router.get('/', async (req, res) => {
+router.get('/users', async (req, res) => {
     const users = await UserService.GetAllUsers();
 
     res.status(200).json(users);
 });
 
 // GET user by id
-router.get('/:id', async (req, res) => {
+router.get('/users/:id', async (req, res) => {
     const found = await UserService.GetUserById(req.params.id);
 
     if (found) {
@@ -23,7 +23,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // GET auto-suggest list of users
-router.get('/list/:limit/:loginSubstring', async (req, res) => {
+router.get('/users/list/:limit/:loginSubstring', async (req, res) => {
     if (req.params.limit === '0') {
         res.status(400).send('limit must be more then 0');
     }
@@ -33,7 +33,7 @@ router.get('/list/:limit/:loginSubstring', async (req, res) => {
 });
 
 // CREATE and UPDATE user
-router.post('/', validateSchema(userSchema), async (req, res) => {
+router.post('/users', validateSchema(userSchema), async (req, res) => {
     const currentUser = await UserService.GetUserById(req.body.id);
 
     if (currentUser) {
@@ -52,7 +52,7 @@ router.post('/', validateSchema(userSchema), async (req, res) => {
 });
 
 // DELETE user
-router.delete('/:id', async (req, res) => {
+router.delete('/users/:id', async (req, res) => {
     const { id } = req.params;
     const deletedUser = await UserService.GetUserById(id);
 
