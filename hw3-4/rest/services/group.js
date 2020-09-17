@@ -32,23 +32,27 @@ const GroupService = {
     },
 
     async DeleteGroup(id) {
-        const { name } = await this.GetGroupById(id);
-        const records = await UserGroupModel
-            .findAll({
-                where: {
-                    groups: { [Op.contains]: [name] }
-                }
-            });
+        try {
+            const { name } = await this.GetGroupById(id);
+            const records = await UserGroupModel
+              .findAll({
+                  where: {
+                      groups: { [Op.contains]: [name] }
+                  }
+              });
 
-        records.forEach(async (rec) => {
-            await UserGroupModel
-                .update(
+            records.forEach(async (rec) => {
+                await UserGroupModel
+                  .update(
                     { groups: rec.groups.filter(item => item !== name) },
                     { where: { id: rec.id } }
-                );
-        });
+                  );
+            });
 
-        await GroupModel.destroy({ where: { id } });
+            await GroupModel.destroy({ where: { id } });
+        } catch(e) {
+            console.error(e);
+        }
     }
 };
 

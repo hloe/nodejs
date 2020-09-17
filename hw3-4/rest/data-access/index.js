@@ -1,11 +1,29 @@
-import { user as initUsers } from './user.js';
-import { group as initGroups } from './group.js';
-import { userGroup as initUserGroup } from './userGroup.js';
+import pg from 'pg';
+import { configUrl } from '../config.js';
+
+import userTable from './tables/users.js';
+import groupTable from './tables/groups.js';
+import userGroupsTable from './tables/userGrops.js';
+
+const { Client } = pg;
+const client = new Client(configUrl);
 
 const initData = () => {
-    initUsers();
-    initGroups();
-    initUserGroup();
+    const query = {
+        text: `
+        ${userTable}
+        ${groupTable}
+        ${userGroupsTable}
+      `
+    };
+
+    client.connect();
+    client.query(query, (err) => {
+        if (err) {
+            console.log(err);
+        }
+        client.end();
+    });
 };
 
 export { initData };
