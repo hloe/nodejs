@@ -1,6 +1,8 @@
 import Sequelize from 'sequelize';
 import { configUrl } from './../config.js';
 
+import GroupModel from './group.js';
+
 const sequelize = new Sequelize(configUrl);
 
 const UserModel = sequelize.define('users', {
@@ -58,5 +60,10 @@ const UserModel = sequelize.define('users', {
 }, {
     timestamps: false
 });
+
+// UserModel.hasMany(GroupModel, { through: 'UserGroupModel' });
+// GroupModel.hasMany(UserModel, { through: 'UserGroupModel' });
+UserModel.belongsToMany(GroupModel, { through: 'UserGroupModel' });
+GroupModel.belongsToMany(UserModel, { through: 'UserGroupModel' });
 
 export default UserModel;

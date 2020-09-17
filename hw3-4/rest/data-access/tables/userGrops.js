@@ -1,7 +1,7 @@
 const userGroupsTable = `
   CREATE TABLE IF NOT EXISTS UserGroups (
     id uuid DEFAULT uuid_generate_v4(),
-    login VARCHAR ( 30 ) UNIQUE NOT NULL REFERENCES Users (login) ON UPDATE CASCADE ON DELETE CASCADE,
+    login VARCHAR ( 30 ) REFERENCES Users (login) ON UPDATE CASCADE ON DELETE CASCADE,
     groups VARCHAR ( 30 )[] NOT NULL
   );      
   

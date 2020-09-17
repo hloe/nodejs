@@ -1,7 +1,7 @@
 const userTable = `
   CREATE TABLE IF NOT EXISTS Users (
     id uuid DEFAULT uuid_generate_v4(),
-    login VARCHAR ( 30 ) UNIQUE NOT NULL,
+    login VARCHAR ( 30 ) PRIMARY KEY,
     password VARCHAR ( 30 ) NOT NULL,
     age INTEGER CHECK (age >= 4 AND age <= 130),
     is_deleted BOOLEAN DEFAULT FALSE

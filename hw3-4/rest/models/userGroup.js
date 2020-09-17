@@ -30,7 +30,4 @@ const UserGroupModel = sequelize.define('usergroups', {
     timestamps: false
 });
 
-UserModel.belongsToMany(GroupModel, { through: 'UserGroupModel' });
-GroupModel.belongsToMany(UserModel, { through: 'UserGroupModel' });
-
 export default UserGroupModel;

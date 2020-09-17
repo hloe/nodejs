@@ -2,7 +2,6 @@ import Sequelize from 'sequelize';
 import { configUrl } from '../config.js';
 
 import UserModel from '../models/user.js';
-import UserGroupModel from '../models/userGroup.js';
 
 const sequelize = new Sequelize(configUrl);
 
@@ -44,10 +43,7 @@ const UserService = {
     },
 
     async DeleteUser(id) {
-        const { login } = await this.GetUserById(id);
-
         await UserModel.destroy({ where: { id } });
-        await UserGroupModel.destroy({ where: { login } });
     }
 };
 

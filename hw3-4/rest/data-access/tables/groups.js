@@ -1,7 +1,7 @@
 const groupTable = `
   CREATE TABLE IF NOT EXISTS Groups (
     id uuid DEFAULT uuid_generate_v4(),
-    name VARCHAR( 30 ) UNIQUE NOT NULL,
+    name VARCHAR( 30 ) PRIMARY KEY,
     permission VARCHAR( 30 )[] NOT NULL
   );
   
