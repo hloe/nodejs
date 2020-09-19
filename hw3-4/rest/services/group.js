@@ -1,9 +1,5 @@
-import Sequelize from 'sequelize';
-
 import GroupModel from '../models/group.js';
-import UserGroupModel from '../models/userGroup.js';
-
-const { Op } = Sequelize;
+import UserGroupService from './userGroup.js';
 
 const GroupService = {
     async GetAllGroups() {
@@ -32,27 +28,8 @@ const GroupService = {
     },
 
     async DeleteGroup(id) {
-        try {
-            const { name } = await this.GetGroupById(id);
-            const records = await UserGroupModel
-              .findAll({
-                  where: {
-                      groups: { [Op.contains]: [name] }
-                  }
-              });
-
-            records.forEach(async (rec) => {
-                await UserGroupModel
-                  .update(
-                    { groups: rec.groups.filter(item => item !== name) },
-                    { where: { id: rec.id } }
-                  );
-            });
-
-            await GroupModel.destroy({ where: { id } });
-        } catch(e) {
-            console.error(e);
-        }
+        await UserGroupService.DeleteUsersGroup(id);
+        await GroupModel.destroy({ where: { id } });
     }
 };
 

@@ -3,7 +3,7 @@ import { configUrl } from '../config.js';
 
 import userTable from './tables/users.js';
 import groupTable from './tables/groups.js';
-import userGroupsTable from './tables/userGrops.js';
+import userGroupsTable from './tables/userGroups.js';
 
 const { Client } = pg;
 const client = new Client(configUrl);

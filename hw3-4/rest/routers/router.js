@@ -2,6 +2,7 @@ import express from 'express';
 import { validateSchema, userSchema, groupSchema } from './validation.js';
 import UserService from './../services/user.js';
 import GroupService from './../services/group.js';
+import UserGroupService from './../services/userGroup.js';
 
 const router = express.Router();
 
@@ -116,6 +117,26 @@ router.delete('/groups/:id', async (req, res) => {
         res.sendStatus(204);
     } else {
         res.sendStatus(404);
+    }
+});
+
+// Add users to group
+router.post('/groups/add-users', async (req, res) => {
+    const { groupId, userIds } = req.body;
+
+    if (!userIds.length) {
+        res.status(400).send('Users array can not be empty');
+    }
+
+    const currentGroup = await GroupService.GetGroupById(groupId);
+    const users = await UserGroupService.GetUsersById(userIds);
+    const userNotFound = users.some(user => !user);
+
+    if (!currentGroup || userNotFound) {
+        res.sendStatus(404);
+    } else {
+        await UserGroupService.AddUsersToGroup(groupId, userIds);
+        res.sendStatus(204);
     }
 });
 
