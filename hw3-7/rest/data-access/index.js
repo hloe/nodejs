@@ -1,5 +1,5 @@
 import pg from 'pg';
-import { configUrl } from '../config.js';
+import { configUrl } from '../config/config.js';
 
 import userTable from './tables/users.js';
 import groupTable from './tables/groups.js';

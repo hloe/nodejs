@@ -3,7 +3,7 @@ import Sequelize from 'sequelize';
 import UserGroupModel from '../models/userGroup.js';
 import GroupService from './group.js';
 
-import { configUrl } from './../config.js';
+import { configUrl } from '../config/config.js';
 
 const sequelize = new Sequelize(configUrl);
 const { Op } = Sequelize;

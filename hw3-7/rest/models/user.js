@@ -1,5 +1,5 @@
 import Sequelize from 'sequelize';
-import { configUrl } from './../config.js';
+import { configUrl } from '../config/config.js';
 
 import GroupModel from './group.js';
 
