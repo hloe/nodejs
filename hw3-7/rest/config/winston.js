@@ -17,12 +17,12 @@ const logger = createLogger({
 });
 
 process.on('uncaughtException', (err) => {
-    logger.error('uncaughtException', { message : err.message, stack : err.stack }); // logging with MetaData
+    logger.error('uncaughtException', { message : err.message, stack : err.stack });
     process.exit(1); // exit with failure
 });
 
 process.on('unhandledRejection', (reason, p) => {
-    logger.error('unhandledRejection', { reason, p }); // logging with MetaData
+    logger.error('unhandledRejection', { reason, p });
 });
 
 export default logger;
