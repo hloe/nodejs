@@ -11,7 +11,7 @@ import winstonLogger from './winstonLogger.js';
 const router = express.Router();
 
 // GET all users
-router.get('/users', async (req, res) => {
+router.get('/users', async (req, res, next) => {
     try {
         consoleLogger('UserService.GetAllUsers');
         const users = await UserService.GetAllUsers();
@@ -19,11 +19,12 @@ router.get('/users', async (req, res) => {
         res.status(200).json(users);
     } catch (err) {
         winstonLogger('UserService.GetAllUsers', null, err);
+        next(err);
     }
 });
 
 // GET user by id
-router.get('/users/:id', async (req, res) => {
+router.get('/users/:id', async (req, res, next) => {
     const { id } = req.params;
 
     try {
@@ -37,11 +38,12 @@ router.get('/users/:id', async (req, res) => {
         }
     } catch (err) {
         winstonLogger('UserService.GetUserById', { id }, err);
+        next(err);
     }
 });
 
 // GET auto-suggest list of users
-router.get('/users/list/:limit/:loginSubstring', async (req, res) => {
+router.get('/users/list/:limit/:loginSubstring', async (req, res, next) => {
     if (req.params.limit === '0') {
         res.status(400).send('limit must be more then 0');
     }
@@ -52,11 +54,12 @@ router.get('/users/list/:limit/:loginSubstring', async (req, res) => {
         res.status(201).json(resUsers);
     } catch (err) {
         winstonLogger('UserService.GetAutoSuggestList', req.params, err);
+        next(err);
     }
 });
 
 // CREATE and UPDATE user
-router.post('/users', validateSchema(userSchema), async (req, res) => {
+router.post('/users', validateSchema(userSchema), async (req, res, next) => {
     const { id, login } = req.body;
     let currentUser;
 
@@ -65,40 +68,46 @@ router.post('/users', validateSchema(userSchema), async (req, res) => {
         currentUser = await UserService.GetUserById(id);
     } catch (err) {
         winstonLogger('UserService.GetUserById', { id }, err);
+        next(err);
     }
 
     if (currentUser) {
         // UPDATE user
-        consoleLogger('UserService.UpdateUser', req.body);
-        await UserService.UpdateUser(req.body);
-        res.sendStatus(204);
+        try {
+            consoleLogger('UserService.UpdateUser', req.body);
+            await UserService.UpdateUser(req.body);
+            res.sendStatus(204);
+        } catch(err) {
+            winstonLogger('UserService.UpdateUser', req.body, err);
+            next(err);
+        }
     } else {
         // CREATE user
-        let isLoginUsed;
-
         try {
             consoleLogger('UserService.CheckIfExists', { login });
-            isLoginUsed = await UserService.CheckIfExists(login);
+            const isLoginUsed = await UserService.CheckIfExists(login);
+
+            if (isLoginUsed) {
+                res.status(400).send('User with such login exists already');
+            } else {
+                try {
+                    consoleLogger('UserService.CreateUser', req.body);
+                    await UserService.CreateUser(req.body);
+                    res.sendStatus(204);
+                } catch (err) {
+                    winstonLogger('UserService.CreateUser', req.body, err);
+                    next(err);
+                }
+            }
         } catch (err) {
             winstonLogger('UserService.CheckIfExists', { login }, err);
-        }
-
-        if (isLoginUsed) {
-            res.status(400).send('User with such login exists already');
-        } else {
-            try {
-                consoleLogger('UserService.CreateUser', req.body);
-                await UserService.CreateUser(req.body);
-                res.sendStatus(204);
-            } catch (err) {
-                winstonLogger('UserService.CreateUser', req.body, err);
-            }
+            next(err);
         }
     }
 });
 
 // DELETE user
-router.delete('/users/:id', async (req, res) => {
+router.delete('/users/:id', async (req, res, next) => {
     const { id } = req.params;
     let deletedUser;
 
@@ -107,6 +116,7 @@ router.delete('/users/:id', async (req, res) => {
         deletedUser = await UserService.GetUserById(id);
     } catch (err) {
         winstonLogger('UserService.GetUserById', { id }, err);
+        next(err);
     }
 
     if (deletedUser) {
@@ -117,6 +127,7 @@ router.delete('/users/:id', async (req, res) => {
             res.sendStatus(204);
         } catch (err) {
             winstonLogger('UserService.DeleteUser', { id }, err);
+            next(err);
         }
     } else {
         res.sendStatus(404);
@@ -124,7 +135,7 @@ router.delete('/users/:id', async (req, res) => {
 });
 
 // GET all groups
-router.get('/groups', async (req, res) => {
+router.get('/groups', async (req, res, next) => {
     try {
         consoleLogger('GroupService.GetAllGroups');
         const users = await GroupService.GetAllGroups();
@@ -132,30 +143,32 @@ router.get('/groups', async (req, res) => {
         res.status(200).json(users);
     } catch (err) {
         winstonLogger('GroupService.GetAllGroups', null, err);
+        next(err);
     }
 });
 
 // GET group by id
-router.get('/groups/:id', async (req, res) => {
+router.get('/groups/:id', async (req, res, next) => {
     const { id } = req.params;
     let found;
 
     try {
         consoleLogger('GroupService.GetGroupById', { id });
         found = await GroupService.GetGroupById(id);
+
+        if (found) {
+            res.status(200).json(found);
+        } else {
+            res.sendStatus(404);
+        }
     } catch (err) {
         winstonLogger('GroupService.GetGroupById', { id }, err);
-    }
-
-    if (found) {
-        res.status(200).json(found);
-    } else {
-        res.sendStatus(404);
+        next(err);
     }
 });
 
 // CREATE and UPDATE group
-router.post('/groups', validateSchema(groupSchema), async (req, res) => {
+router.post('/groups', validateSchema(groupSchema), async (req, res, next) => {
     const { id, name } = req.body;
     let currentGroup;
 
@@ -164,6 +177,7 @@ router.post('/groups', validateSchema(groupSchema), async (req, res) => {
         currentGroup = await GroupService.GetGroupById(id);
     } catch (err) {
         winstonLogger('GroupService.GetGroupById', { id }, err);
+        next(err);
     }
 
     if (currentGroup) {
@@ -174,33 +188,35 @@ router.post('/groups', validateSchema(groupSchema), async (req, res) => {
             res.sendStatus(204);
         } catch (err) {
             winstonLogger('GroupService.UpdateGroup', req.body, err);
+            next(err);
         }
     } else {
         // CREATE group
-        let isNameUsed;
         try {
             consoleLogger('GroupService.CheckIfExists', { name });
-            isNameUsed = await GroupService.CheckIfExists(name);
+            const isNameUsed = await GroupService.CheckIfExists(name);
+
+            if (isNameUsed) {
+                res.status(400).send('User with such login exists already');
+            } else {
+                try {
+                    consoleLogger('GroupService.CreateGroup', req.body);
+                    await GroupService.CreateGroup(req.body);
+                    res.sendStatus(204);
+                } catch (err) {
+                    winstonLogger('GroupService.CreateGroup', req.body, err);
+                    next(err);
+                }
+            }
         } catch (err) {
             winstonLogger('GroupService.CheckIfExists', { name }, err);
-        }
-
-        if (isNameUsed) {
-            res.status(400).send('User with such login exists already');
-        } else {
-            try {
-                consoleLogger('GroupService.CreateGroup', req.body);
-                await GroupService.CreateGroup(req.body);
-                res.sendStatus(204);
-            } catch (err) {
-                winstonLogger('GroupService.CreateGroup', req.body, err);
-            }
+            next(err);
         }
     }
 });
 
 // DELETE group
-router.delete('/groups/:id', async (req, res) => {
+router.delete('/groups/:id', async (req, res, next) => {
     const { id } = req.params;
     let deletedGroup;
 
@@ -209,6 +225,7 @@ router.delete('/groups/:id', async (req, res) => {
         deletedGroup = await GroupService.GetGroupById(id);
     } catch (err) {
         winstonLogger('GroupService.GetGroupById', { id }, err);
+        next(err);
     }
 
     if (deletedGroup) {
@@ -219,6 +236,7 @@ router.delete('/groups/:id', async (req, res) => {
             res.sendStatus(204);
         } catch (err) {
             winstonLogger('GroupService.DeleteGroup', { id }, err);
+            next(err);
         }
     } else {
         res.sendStatus(404);
@@ -226,7 +244,7 @@ router.delete('/groups/:id', async (req, res) => {
 });
 
 // Add users to group
-router.post('/groups/add-users', async (req, res) => {
+router.post('/groups/add-users', async (req, res, next) => {
     const { groupId, userIds } = req.body;
 
     if (!userIds.length) {
@@ -239,6 +257,7 @@ router.post('/groups/add-users', async (req, res) => {
         currentGroup = await GroupService.GetGroupById(groupId);
     } catch (err) {
         winstonLogger('GroupService.GetGroupById', { groupId }, err);
+        next(err);
     }
 
     let users; let userNotFound;
@@ -248,6 +267,7 @@ router.post('/groups/add-users', async (req, res) => {
         userNotFound = users.some(user => !user);
     } catch (err) {
         winstonLogger('UserGroupService.GetUsersById', { userIds }, err);
+        next(err);
     }
 
     if (!currentGroup || userNotFound) {
@@ -259,6 +279,7 @@ router.post('/groups/add-users', async (req, res) => {
             res.sendStatus(204);
         } catch (err) {
             winstonLogger('UserGroupService.AddUsersToGroup', { userIds }, err);
+            next(err);
         }
     }
 });
