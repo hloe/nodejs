@@ -17,7 +17,7 @@ app
   .use(express.json())
   .use(cors({ origin: corsUrl }))
   .use((req, res, next) => {
-    middleware();
+    middleware(req);
     next();
 })
   .use('/', router);
