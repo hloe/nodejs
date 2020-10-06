@@ -15,7 +15,7 @@ const app = express();
 
 app
     .use(express.json())
-    .use(cors({ origin: corsUrl }))
+    .use(cors())
     .use((req, res, next) => {
         middleware(req);
         next();
@@ -32,3 +32,7 @@ app.use((err, req, res, next) => {
 const server = http.createServer(app);
 server.listen(port);
 console.debug(`Server listening on port ${  port}`);
+
+app.listen(corsUrl, () => {
+    console.debug(`CORS-enabled web server listening on port ${corsUrl}`);
+});
