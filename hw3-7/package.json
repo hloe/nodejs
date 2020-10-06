@@ -1,5 +1,5 @@
 {
-  "name": "hw3-4",
+  "name": "hw3-7",
   "version": "1.0.0",
   "type": "module",
   "description": "",
@@ -27,6 +27,7 @@
   "dependencies": {
     "@hapi/joi": "15.0.3",
     "app-root-path": "^3.0.0",
+    "jsonwebtoken": "^8.5.1",
     "pg": "^8.3.3",
     "sequelize": "^6.3.5"
   }

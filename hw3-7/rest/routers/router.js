@@ -1,4 +1,5 @@
 import express from 'express';
+import jwt from 'jsonwebtoken';
 
 import { validateSchema, userSchema, groupSchema } from './validation.js';
 import UserService from './../services/user.js';
@@ -8,23 +9,77 @@ import UserGroupService from './../services/userGroup.js';
 import consoleLogger from './consoleLogger.js';
 import winstonLogger from './winstonLogger.js';
 
+import { secret } from './../config/config.js';
+
 const router = express.Router();
 
+const checkToken = (req, res, next) => {
+    const token = req.headers['x-access-token'];
+
+    if (!token) {
+        return res.status(401).send({
+            success: false,
+            message: 'No token provided.'
+        });
+    }
+
+    return jwt.verify(token, secret, (err) => {
+        if (err) {
+            return res.status(403).send({
+                success: false,
+                message: 'Failed to authenticate token.'
+            });
+        }
+
+        return next();
+    });
+};
+
+// get token
+router.post('/login', async (req, res, next) => {
+    const { login, password } = req.body;
+
+    try {
+        let user;
+
+        try {
+            consoleLogger('UserService.CheckIfExists');
+            user = await UserService.CheckIfExists(login);
+        } catch (err) {
+            winstonLogger('UserService.CheckIfExists', { login }, err);
+        }
+
+        if (!user || user.password !== password) {
+            return res.status(401).send({
+                success: false,
+                message: 'Bad username/password combination.'
+            });
+        }
+
+        const payload = { login, password };
+        const jwtToken = jwt.sign(payload, secret, { expiresIn: 120 });
+
+        return res.send({ jwtToken });
+    } catch (err) {
+        return next(err);
+    }
+});
+
 // GET all users
-router.get('/users', async (req, res, next) => {
+router.get('/users', checkToken, async (req, res, next) => {
     try {
         consoleLogger('UserService.GetAllUsers');
         const users = await UserService.GetAllUsers();
 
-        res.status(200).json(users);
+        return res.status(200).json(users);
     } catch (err) {
         winstonLogger('UserService.GetAllUsers', null, err);
-        next(err);
+        return next(err);
     }
 });
 
 // GET user by id
-router.get('/users/:id', async (req, res, next) => {
+router.get('/users/:id', checkToken, async (req, res, next) => {
     const { id } = req.params;
 
     try {
@@ -32,34 +87,35 @@ router.get('/users/:id', async (req, res, next) => {
         const found = await UserService.GetUserById(id);
 
         if (found) {
-            res.status(200).json(found);
-        } else {
-            res.sendStatus(404);
+            return res.status(200).json(found);
         }
+
+        return res.sendStatus(404);
     } catch (err) {
         winstonLogger('UserService.GetUserById', { id }, err);
-        next(err);
+        return next(err);
     }
 });
 
 // GET auto-suggest list of users
-router.get('/users/list/:limit/:loginSubstring', async (req, res, next) => {
+router.get('/users/list/:limit/:loginSubstring', checkToken, async (req, res, next) => {
     if (req.params.limit === '0') {
-        res.status(400).send('limit must be more then 0');
+        return res.status(400).send('limit must be more then 0');
     }
 
     try {
         consoleLogger('UserService.GetAutoSuggestList', req.params);
         const resUsers = await UserService.GetAutoSuggestList(req.params);
-        res.status(201).json(resUsers);
+
+        return res.status(201).json(resUsers);
     } catch (err) {
         winstonLogger('UserService.GetAutoSuggestList', req.params, err);
-        next(err);
+        return next(err);
     }
 });
 
 // CREATE and UPDATE user
-router.post('/users', validateSchema(userSchema), async (req, res, next) => {
+router.post('/users', checkToken, validateSchema(userSchema), async (req, res, next) => {
     const { id, login } = req.body;
     let currentUser;
 
@@ -68,7 +124,7 @@ router.post('/users', validateSchema(userSchema), async (req, res, next) => {
         currentUser = await UserService.GetUserById(id);
     } catch (err) {
         winstonLogger('UserService.GetUserById', { id }, err);
-        next(err);
+        return next(err);
     }
 
     if (currentUser) {
@@ -76,10 +132,11 @@ router.post('/users', validateSchema(userSchema), async (req, res, next) => {
         try {
             consoleLogger('UserService.UpdateUser', req.body);
             await UserService.UpdateUser(req.body);
-            res.sendStatus(204);
-        } catch(err) {
+
+            return res.sendStatus(204);
+        } catch (err) {
             winstonLogger('UserService.UpdateUser', req.body, err);
-            next(err);
+            return next(err);
         }
     } else {
         // CREATE user
@@ -88,26 +145,26 @@ router.post('/users', validateSchema(userSchema), async (req, res, next) => {
             const isLoginUsed = await UserService.CheckIfExists(login);
 
             if (isLoginUsed) {
-                res.status(400).send('User with such login exists already');
-            } else {
-                try {
-                    consoleLogger('UserService.CreateUser', req.body);
-                    await UserService.CreateUser(req.body);
-                    res.sendStatus(204);
-                } catch (err) {
-                    winstonLogger('UserService.CreateUser', req.body, err);
-                    next(err);
-                }
+                return res.status(400).send('User with such login exists already');
+            }
+
+            try {
+                consoleLogger('UserService.CreateUser', req.body);
+                await UserService.CreateUser(req.body);
+                return res.sendStatus(204);
+            } catch (err) {
+                winstonLogger('UserService.CreateUser', req.body, err);
+                return next(err);
             }
         } catch (err) {
             winstonLogger('UserService.CheckIfExists', { login }, err);
-            next(err);
+            return next(err);
         }
     }
 });
 
 // DELETE user
-router.delete('/users/:id', async (req, res, next) => {
+router.delete('/users/:id', checkToken, async (req, res, next) => {
     const { id } = req.params;
     let deletedUser;
 
@@ -116,7 +173,7 @@ router.delete('/users/:id', async (req, res, next) => {
         deletedUser = await UserService.GetUserById(id);
     } catch (err) {
         winstonLogger('UserService.GetUserById', { id }, err);
-        next(err);
+        return next(err);
     }
 
     if (deletedUser) {
@@ -124,31 +181,31 @@ router.delete('/users/:id', async (req, res, next) => {
             consoleLogger('UserService.DeleteUser', { id });
             await UserService.DeleteUser(id);
 
-            res.sendStatus(204);
+            return res.sendStatus(204);
         } catch (err) {
             winstonLogger('UserService.DeleteUser', { id }, err);
-            next(err);
+            return next(err);
         }
-    } else {
-        res.sendStatus(404);
     }
+
+    return res.sendStatus(404);
 });
 
 // GET all groups
-router.get('/groups', async (req, res, next) => {
+router.get('/groups', checkToken, async (req, res, next) => {
     try {
         consoleLogger('GroupService.GetAllGroups');
         const users = await GroupService.GetAllGroups();
 
-        res.status(200).json(users);
+        return res.status(200).json(users);
     } catch (err) {
         winstonLogger('GroupService.GetAllGroups', null, err);
-        next(err);
+        return next(err);
     }
 });
 
 // GET group by id
-router.get('/groups/:id', async (req, res, next) => {
+router.get('/groups/:id', checkToken, async (req, res, next) => {
     const { id } = req.params;
     let found;
 
@@ -157,18 +214,18 @@ router.get('/groups/:id', async (req, res, next) => {
         found = await GroupService.GetGroupById(id);
 
         if (found) {
-            res.status(200).json(found);
-        } else {
-            res.sendStatus(404);
+            return res.status(200).json(found);
         }
+
+        return res.sendStatus(404);
     } catch (err) {
         winstonLogger('GroupService.GetGroupById', { id }, err);
-        next(err);
+        return next(err);
     }
 });
 
 // CREATE and UPDATE group
-router.post('/groups', validateSchema(groupSchema), async (req, res, next) => {
+router.post('/groups', checkToken, validateSchema(groupSchema), async (req, res, next) => {
     const { id, name } = req.body;
     let currentGroup;
 
@@ -177,7 +234,7 @@ router.post('/groups', validateSchema(groupSchema), async (req, res, next) => {
         currentGroup = await GroupService.GetGroupById(id);
     } catch (err) {
         winstonLogger('GroupService.GetGroupById', { id }, err);
-        next(err);
+        return next(err);
     }
 
     if (currentGroup) {
@@ -185,10 +242,11 @@ router.post('/groups', validateSchema(groupSchema), async (req, res, next) => {
         try {
             consoleLogger('GroupService.UpdateGroup', req.body);
             await GroupService.UpdateGroup(req.body);
-            res.sendStatus(204);
+
+            return res.sendStatus(204);
         } catch (err) {
             winstonLogger('GroupService.UpdateGroup', req.body, err);
-            next(err);
+            return next(err);
         }
     } else {
         // CREATE group
@@ -197,26 +255,26 @@ router.post('/groups', validateSchema(groupSchema), async (req, res, next) => {
             const isNameUsed = await GroupService.CheckIfExists(name);
 
             if (isNameUsed) {
-                res.status(400).send('User with such login exists already');
-            } else {
-                try {
-                    consoleLogger('GroupService.CreateGroup', req.body);
-                    await GroupService.CreateGroup(req.body);
-                    res.sendStatus(204);
-                } catch (err) {
-                    winstonLogger('GroupService.CreateGroup', req.body, err);
-                    next(err);
-                }
+                return res.status(400).send('User with such login exists already');
+            }
+
+            try {
+                consoleLogger('GroupService.CreateGroup', req.body);
+                await GroupService.CreateGroup(req.body);
+                return res.sendStatus(204);
+            } catch (err) {
+                winstonLogger('GroupService.CreateGroup', req.body, err);
+                return next(err);
             }
         } catch (err) {
             winstonLogger('GroupService.CheckIfExists', { name }, err);
-            next(err);
+            return next(err);
         }
     }
 });
 
 // DELETE group
-router.delete('/groups/:id', async (req, res, next) => {
+router.delete('/groups/:id', checkToken, async (req, res, next) => {
     const { id } = req.params;
     let deletedGroup;
 
@@ -225,7 +283,7 @@ router.delete('/groups/:id', async (req, res, next) => {
         deletedGroup = await GroupService.GetGroupById(id);
     } catch (err) {
         winstonLogger('GroupService.GetGroupById', { id }, err);
-        next(err);
+        return next(err);
     }
 
     if (deletedGroup) {
@@ -233,22 +291,22 @@ router.delete('/groups/:id', async (req, res, next) => {
             consoleLogger('GroupService.DeleteGroup', { id });
             await GroupService.DeleteGroup(id);
 
-            res.sendStatus(204);
+            return res.sendStatus(204);
         } catch (err) {
             winstonLogger('GroupService.DeleteGroup', { id }, err);
-            next(err);
+            return next(err);
         }
     } else {
-        res.sendStatus(404);
+        return res.sendStatus(404);
     }
 });
 
 // Add users to group
-router.post('/groups/add-users', async (req, res, next) => {
+router.post('/groups/add-users', checkToken, async (req, res, next) => {
     const { groupId, userIds } = req.body;
 
     if (!userIds.length) {
-        res.status(400).send('Users array can not be empty');
+        return res.status(400).send('Users array can not be empty');
     }
 
     let currentGroup;
@@ -257,7 +315,7 @@ router.post('/groups/add-users', async (req, res, next) => {
         currentGroup = await GroupService.GetGroupById(groupId);
     } catch (err) {
         winstonLogger('GroupService.GetGroupById', { groupId }, err);
-        next(err);
+        return next(err);
     }
 
     let users; let userNotFound;
@@ -267,20 +325,21 @@ router.post('/groups/add-users', async (req, res, next) => {
         userNotFound = users.some(user => !user);
     } catch (err) {
         winstonLogger('UserGroupService.GetUsersById', { userIds }, err);
-        next(err);
+        return next(err);
     }
 
     if (!currentGroup || userNotFound) {
-        res.sendStatus(404);
-    } else {
-        try {
-            consoleLogger('UserGroupService.AddUsersToGroup', { userIds });
-            await UserGroupService.AddUsersToGroup(groupId, userIds);
-            res.sendStatus(204);
-        } catch (err) {
-            winstonLogger('UserGroupService.AddUsersToGroup', { userIds }, err);
-            next(err);
-        }
+        return res.sendStatus(404);
+    }
+
+    try {
+        consoleLogger('UserGroupService.AddUsersToGroup', { userIds });
+        await UserGroupService.AddUsersToGroup(groupId, userIds);
+
+        return res.sendStatus(204);
+    } catch (err) {
+        winstonLogger('UserGroupService.AddUsersToGroup', { userIds }, err);
+        return next(err);
     }
 });
 

@@ -14,13 +14,13 @@ initData();
 const app = express();
 
 app
-  .use(express.json())
-  .use(cors({ origin: corsUrl }))
-  .use((req, res, next) => {
-    middleware(req);
-    next();
-})
-  .use('/', router);
+    .use(express.json())
+    .use(cors({ origin: corsUrl }))
+    .use((req, res, next) => {
+        middleware(req);
+        next();
+    })
+    .use('/', router);
 
 // error handler
 app.use((err, req, res, next) => {
