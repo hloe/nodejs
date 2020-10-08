@@ -4,8 +4,8 @@ import cors from 'cors';
 
 import { initData } from './data-access/index.js';
 
-import router from './routers/router.js';
-import middleware from './routers/middleware.js';
+import controller from './controllers/index.js';
+import middleware from './controllers/utils/middleware.js';
 import { corsUrl, port } from './config/config.js';
 import winston from './config/winston.js';
 
@@ -20,7 +20,7 @@ app
         middleware(req);
         next();
     })
-    .use('/', router);
+    .use('/', controller);
 
 // error handler
 app.use((err, req, res, next) => {

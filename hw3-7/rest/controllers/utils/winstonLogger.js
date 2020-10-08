@@ -1,4 +1,4 @@
-import winston from './../config/winston.js';
+import winston from '../../config/winston.js';
 
 const winstonLogger = (methodName, params, error) => {
     winston.error(`Error in ${methodName}.

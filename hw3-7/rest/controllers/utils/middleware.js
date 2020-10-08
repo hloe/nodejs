@@ -1,7 +1,7 @@
 import Sequelize from 'sequelize';
 
-import { configUrl } from '../config/config.js';
-import winston from '../config/winston.js';
+import { configUrl } from '../../config/config.js';
+import winston from '../../config/winston.js';
 
 const sequelize = new Sequelize(configUrl);
 
