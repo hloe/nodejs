@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken';
-import { secret } from '../config/config.js';
+import { secret } from '../../config/config.js';
 
-import consoleLogger from './utils/consoleLogger.js';
-import winstonLogger from './utils/winstonLogger.js';
+import consoleLogger from '../utils/consoleLogger.js';
+import winstonLogger from '../utils/winstonLogger.js';
 
-import UserService from '../services/user.js';
+import UserService from '../../services/user.js';
 
 const AuthController = {
   async Login (req, res, next) {
@@ -17,7 +17,7 @@ const AuthController = {
         consoleLogger('UserService.CheckIfExists');
         user = await UserService.CheckIfExists(login);
       } catch (err) {
-        winstonLogger('UserService.CheckIfExists', { login }, err);
+        winstonLogger(err, 'UserService.CheckIfExists', { login });
       }
 
       if (!user || user.password !== password) {

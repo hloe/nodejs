@@ -1,7 +1,7 @@
-import consoleLogger from './utils/consoleLogger.js';
-import winstonLogger from './utils/winstonLogger.js';
+import consoleLogger from '../utils/consoleLogger.js';
+import winstonLogger from '../utils/winstonLogger.js';
 
-import UserService from '../services/user.js';
+import UserService from '../../services/user.js';
 
 const UserController = {
   async GetAllUsers(req, res, next) {
@@ -11,7 +11,7 @@ const UserController = {
 
       return res.status(200).json(users);
     } catch (err) {
-      winstonLogger('UserService.GetAllUsers', null, err);
+      winstonLogger(err, 'UserService.GetAllUsers');
       return next(err);
     }
   },
@@ -29,7 +29,7 @@ const UserController = {
 
       return res.sendStatus(404);
     } catch (err) {
-      winstonLogger('UserService.GetUserById', { id }, err);
+      winstonLogger(err, 'UserService.GetUserById', { id });
       return next(err);
     }
   },
@@ -45,7 +45,7 @@ const UserController = {
 
       return res.status(201).json(resUsers);
     } catch (err) {
-      winstonLogger('UserService.GetAutoSuggestList', req.params, err);
+      winstonLogger(err, 'UserService.GetAutoSuggestList', req.params);
       return next(err);
     }
   },
@@ -58,7 +58,7 @@ const UserController = {
       consoleLogger('UserService.GetUserById', { id });
       currentUser = await UserService.GetUserById(id);
     } catch (err) {
-      winstonLogger('UserService.GetUserById', { id }, err);
+      winstonLogger(err, 'UserService.GetUserById', { id });
       return next(err);
     }
 
@@ -70,7 +70,7 @@ const UserController = {
 
         return res.sendStatus(204);
       } catch (err) {
-        winstonLogger('UserService.UpdateUser', req.body, err);
+        winstonLogger(err, 'UserService.UpdateUser', req.body);
         return next(err);
       }
     } else {
@@ -88,11 +88,11 @@ const UserController = {
           await UserService.CreateUser(req.body);
           return res.sendStatus(204);
         } catch (err) {
-          winstonLogger('UserService.CreateUser', req.body, err);
+          winstonLogger(err, 'UserService.CreateUser', req.body);
           return next(err);
         }
       } catch (err) {
-        winstonLogger('UserService.CheckIfExists', { login }, err);
+        winstonLogger(err, 'UserService.CheckIfExists', { login });
         return next(err);
       }
     }
@@ -106,7 +106,7 @@ const UserController = {
       consoleLogger('UserService.GetUserById', { id });
       deletedUser = await UserService.GetUserById(id);
     } catch (err) {
-      winstonLogger('UserService.GetUserById', { id }, err);
+      winstonLogger(err, 'UserService.GetUserById', { id });
       return next(err);
     }
 
@@ -117,7 +117,7 @@ const UserController = {
 
         return res.sendStatus(204);
       } catch (err) {
-        winstonLogger('UserService.DeleteUser', { id }, err);
+        winstonLogger(err, 'UserService.DeleteUser', { id });
         return next(err);
       }
     }

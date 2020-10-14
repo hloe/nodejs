@@ -1,8 +1,8 @@
-import consoleLogger from './utils/consoleLogger.js';
-import winstonLogger from './utils/winstonLogger.js';
+import consoleLogger from '../utils/consoleLogger.js';
+import winstonLogger from '../utils/winstonLogger.js';
 
-import GroupService from '../services/group.js';
-import UserGroupService from '../services/userGroup.js';
+import GroupService from '../../services/group.js';
+import UserGroupService from '../../services/userGroup.js';
 
 const GroupController = {
   async GetAllGroups(req, res, next) {
@@ -12,7 +12,7 @@ const GroupController = {
 
       return res.status(200).json(users);
     } catch (err) {
-      winstonLogger('GroupService.GetAllGroups', null, err);
+      winstonLogger(err, 'GroupService.GetAllGroups');
       return next(err);
     }
   },
@@ -31,7 +31,7 @@ const GroupController = {
 
       return res.sendStatus(404);
     } catch (err) {
-      winstonLogger('GroupService.GetGroupById', { id }, err);
+      winstonLogger(err, 'GroupService.GetGroupById', { id });
       return next(err);
     }
   },
@@ -44,7 +44,7 @@ const GroupController = {
       consoleLogger('GroupService.GetGroupById', { id });
       currentGroup = await GroupService.GetGroupById(id);
     } catch (err) {
-      winstonLogger('GroupService.GetGroupById', { id }, err);
+      winstonLogger(err, 'GroupService.GetGroupById', { id });
       return next(err);
     }
 
@@ -56,7 +56,7 @@ const GroupController = {
 
         return res.sendStatus(204);
       } catch (err) {
-        winstonLogger('GroupService.UpdateGroup', req.body, err);
+        winstonLogger(err, 'GroupService.UpdateGroup', req.body);
         return next(err);
       }
     } else {
@@ -74,11 +74,11 @@ const GroupController = {
           await GroupService.CreateGroup(req.body);
           return res.sendStatus(204);
         } catch (err) {
-          winstonLogger('GroupService.CreateGroup', req.body, err);
+          winstonLogger(err, 'GroupService.CreateGroup', req.body);
           return next(err);
         }
       } catch (err) {
-        winstonLogger('GroupService.CheckIfExists', { name }, err);
+        winstonLogger(err, 'GroupService.CheckIfExists', { name });
         return next(err);
       }
     }
@@ -92,7 +92,7 @@ const GroupController = {
       consoleLogger('GroupService.GetGroupById', { id });
       deletedGroup = await GroupService.GetGroupById(id);
     } catch (err) {
-      winstonLogger('GroupService.GetGroupById', { id }, err);
+      winstonLogger(err, 'GroupService.GetGroupById', { id });
       return next(err);
     }
 
@@ -103,7 +103,7 @@ const GroupController = {
 
         return res.sendStatus(204);
       } catch (err) {
-        winstonLogger('GroupService.DeleteGroup', { id }, err);
+        winstonLogger(err, 'GroupService.DeleteGroup', { id });
         return next(err);
       }
     } else {
@@ -123,7 +123,7 @@ const GroupController = {
       consoleLogger('GroupService.GetGroupById', { groupId });
       currentGroup = await GroupService.GetGroupById(groupId);
     } catch (err) {
-      winstonLogger('GroupService.GetGroupById', { groupId }, err);
+      winstonLogger(err, 'GroupService.GetGroupById', { groupId });
       return next(err);
     }
 
@@ -134,7 +134,7 @@ const GroupController = {
       users = await UserGroupService.GetUsersById(userIds);
       userNotFound = users.some(user => !user);
     } catch (err) {
-      winstonLogger('UserGroupService.GetUsersById', { userIds }, err);
+      winstonLogger(err, 'UserGroupService.GetUsersById', { userIds });
       return next(err);
     }
 
@@ -148,7 +148,7 @@ const GroupController = {
 
       return res.sendStatus(204);
     } catch (err) {
-      winstonLogger('UserGroupService.AddUsersToGroup', { userIds }, err);
+      winstonLogger(err, 'UserGroupService.AddUsersToGroup', { userIds });
       return next(err);
     }
   }

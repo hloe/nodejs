@@ -3,9 +3,9 @@ import express from 'express';
 import { validateSchema, userSchema, groupSchema } from './utils/validation.js';
 import checkToken from './utils/checkToken.js';
 
-import AuthController from './auth.js';
-import UserController from './user.js';
-import GroupController from './group.js';
+import AuthController from './controllers/auth.js';
+import UserController from './controllers/user.js';
+import GroupController from './controllers/group.js';
 
 const router = express.Router();
 
