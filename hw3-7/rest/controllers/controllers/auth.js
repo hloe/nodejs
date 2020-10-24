@@ -7,34 +7,34 @@ import winstonLogger from '../utils/winstonLogger.js';
 import UserService from '../../services/user.js';
 
 const AuthController = {
-  async Login (req, res, next) {
-    const { login, password } = req.body;
+    async Login(req, res, next) {
+        const { login, password } = req.body;
 
-    try {
-      let user;
+        try {
+            let user;
 
-      try {
-        consoleLogger('UserService.CheckIfExists');
-        user = await UserService.CheckIfExists(login);
-      } catch (err) {
-        winstonLogger(err, 'UserService.CheckIfExists', { login });
-      }
+            try {
+                consoleLogger('UserService.CheckIfExists');
+                user = await UserService.CheckIfExists(login);
+            } catch (err) {
+                winstonLogger(err, 'UserService.CheckIfExists', { login });
+            }
 
-      if (!user || user.password !== password) {
-        return res.status(401).send({
-          success: false,
-          message: 'Bad username/password combination.'
-        });
-      }
+            if (!user || user.password !== password) {
+                return res.status(401).send({
+                    success: false,
+                    message: 'Bad username/password combination.'
+                });
+            }
 
-      const payload = { login, password };
-      const jwtToken = jwt.sign(payload, secret, { expiresIn: 120 });
+            const payload = { login, password };
+            const jwtToken = jwt.sign(payload, secret, { expiresIn: 120 });
 
-      return res.send({ jwtToken });
-    } catch (err) {
-      return next(err);
+            return res.send({ jwtToken });
+        } catch (err) {
+            return next(err);
+        }
     }
-  }
 };
 
 export default AuthController;

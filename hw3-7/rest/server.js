@@ -1,10 +1,11 @@
 import http from 'http';
 import express from 'express';
+import bodyParser from 'body-parser';
 import cors from 'cors';
 
 import { initData } from './data-access/index.js';
 
-import controller from './controllers/index.js';
+import controller from './controllers/controller.js';
 import middleware from './controllers/utils/middleware.js';
 import { corsUrl, port } from './config/config.js';
 import winston from './config/winston.js';
@@ -14,6 +15,8 @@ initData();
 const app = express();
 
 app
+    .use(bodyParser.json())
+    .use(bodyParser.urlencoded({ extended: true }))
     .use(express.json())
     .use(cors())
     .use((req, res, next) => {

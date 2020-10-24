@@ -10,7 +10,7 @@ const userTable = `
   INSERT INTO Users
   SELECT * FROM json_populate_recordset (NULL::Users,
     '[
-      { "id": "b0324518-2d4f-4748-af8e-75096c5488fc", "login": "HarryPotter", "password": "*7feefe", "age": 15, "is_deleted": false },
+      { "id": "b0324518-2d4f-4748-af8e-75096c5488fc", "login": "HarryPotter", "password": "7feefe", "age": 15, "is_deleted": false },
       { "id": "fc70cfa1-16fa-4f2e-9e57-3d9156dcd2bf", "login": "HermioneGranger", "password": "winterIsComing", "age": 15, "is_deleted": false },
       { "id": "edfe53ea-3ba2-4c6d-8266-dfb09fd74d17", "login": "DracoMalfoy", "password": "lalala", "age": 15, "is_deleted": false },
       { "id": "226bd3c0-fe98-4910-9747-fbcd5491aff9", "login": "SeverusSnape", "password": "password", "age": 35, "is_deleted": false },
